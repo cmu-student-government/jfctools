@@ -3,7 +3,8 @@
 
 ## How to use
 
-- Bookmark [this link](javascript://$.getScript('');)
+- Bookmark [this link](javascript://$.getScript('https://cmu-student-government.github.io/jfctools/snapshot.js');) 
+  (right-click, bookmark this link)
 - Open [budget tracker](https://cmu.campuslabs.com/budgeting/)
 - Click the bookmark. 
 After couple minutes, you will be prompted to save a file.

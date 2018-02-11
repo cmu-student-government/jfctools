@@ -1,4 +1,4 @@
-function () { // we don't want to interfere with the campuslab code, so anonymous function
+(function () { // we don't want to interfere with the campuslab code, so anonymous function
     // This script will download a snapshot of JFC budgets accessible from your account
     // Note that it will not download budgets you don't have access to
     // campuslabs comes with jquery 1.9.1
@@ -79,4 +79,4 @@ function () { // we don't want to interfere with the campuslab code, so anonymou
     });
 
     saveBlob({'budgets': budgets, 'orgs': orgs, 'users': users}, 'jfc_data.json');
-}();
+})();
