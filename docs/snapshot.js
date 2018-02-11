@@ -68,14 +68,18 @@
 
     get_budgets_under_review().forEach(function(budget) {
         budgets[budget.Id] = budgets[budget.Id] || get_budget(budget.Id);
-        orgs[budget.CollegiateLinkOrganizationId] = orgs[budget.CollegiateLinkOrganizationId] || get_org_name(budget.CollegiateLinkOrganizationId);
-        users[budget.AccountId] = users[budget.AccountId] || get_profile(users[budget.AccountId]);
+        if (budget.CollegiateLinkOrganizationId)
+            orgs[budget.CollegiateLinkOrganizationId] = orgs[budget.CollegiateLinkOrganizationId] || get_org_name(budget.CollegiateLinkOrganizationId);
+        if (budget.AccountId)
+            users[budget.AccountId] = users[budget.AccountId] || get_profile(users[budget.AccountId]);
     });
     get_submitted_budgets().forEach(function(budget) {
         budgets[budget.Id] = budgets[budget.Id] || get_budget(budget.Id);
-        orgs[budget.CollegiateLinkOrganizationId] = orgs[budget.CollegiateLinkOrganizationId] || get_org_name(budget.CollegiateLinkOrganizationId);
+        if (budget.CollegiateLinkOrganizationId)
+            orgs[budget.CollegiateLinkOrganizationId] = orgs[budget.CollegiateLinkOrganizationId] || get_org_name(budget.CollegiateLinkOrganizationId);
         // the only reason to have duplicated code is this inconsistency in API
-        users[budget.Account.Id] = users[budget.Account.Id] || get_profile(users[budget.Account.Id]);
+        if (budget.Account && budget.Account.Id)
+            users[budget.Account.Id] = users[budget.Account.Id] || get_profile(users[budget.Account.Id]);
     });
 
     saveBlob({'budgets': budgets, 'orgs': orgs, 'users': users}, 'jfc_data.json');
