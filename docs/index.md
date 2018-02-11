@@ -104,7 +104,7 @@ Result example:
       ProfileImageUrl: <str>
     }
 
-## Get budget info
+## Get info on a budget under review
 GET: `/budgetingapi/reviews/reviews/ + budget_id`
 
 Result example:
@@ -221,3 +221,10 @@ Result example:
              ...
          ]
      }
+
+
+## Get info on a submitted budget
+
+GET: `/budgetingapi/submissions/submissions/ + budget_id`
+
+Result: same as for a budget under review

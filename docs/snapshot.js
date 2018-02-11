@@ -44,14 +44,14 @@
     function get_budgets_under_review() {
         return _api('/budgetingapi/reviews/reviews', 'GET');
     }
-    function get_budgets_under_review() {
-        return _api('/budgetingapi/reviews/reviews', 'GET');
-    }
     function get_profile(uid){
         return _api('/budgetingapi/submissions/submissions/GetAccountDetails', 'POST', uid);
     }
-    function get_budget(budget_id) {
+    function get_budget_under_review(budget_id) {
         return _api('/budgetingapi/reviews/reviews/' + budget_id, 'GET');
+    }
+    function get_submitted_budget(budget_id) {
+        return _api('/budgetingapi/submissions/submissions/' + budget_id, 'GET');
     }
     function saveBlob(obj, fileName) {
         // a slightly modified version of https://stackoverflow.com/questions/22724070/
@@ -59,6 +59,8 @@
         a.href = window.URL.createObjectURL(
             new Blob([JSON.stringify(obj, null, 2)], {type : 'application/json'}));
         a.download = fileName;
+        // won't work without this on Firefox; Chrome doesn't need this
+        document.body.append(a);
         a.click();
     }
 
@@ -67,14 +69,14 @@
     var users = {};
 
     get_budgets_under_review().forEach(function(budget) {
-        budgets[budget.Id] = budgets[budget.Id] || get_budget(budget.Id);
+        budgets[budget.Id] = budgets[budget.Id] || get_budget_under_review(budget.Id);
         if (budget.CollegiateLinkOrganizationId)
             orgs[budget.CollegiateLinkOrganizationId] = orgs[budget.CollegiateLinkOrganizationId] || get_org_name(budget.CollegiateLinkOrganizationId);
         if (budget.AccountId)
             users[budget.AccountId] = users[budget.AccountId] || get_profile(users[budget.AccountId]);
     });
     get_submitted_budgets().forEach(function(budget) {
-        budgets[budget.Id] = budgets[budget.Id] || get_budget(budget.Id);
+        budgets[budget.Id] = budgets[budget.Id] || get_submitted_budget(budget.Id);
         if (budget.CollegiateLinkOrganizationId)
             orgs[budget.CollegiateLinkOrganizationId] = orgs[budget.CollegiateLinkOrganizationId] || get_org_name(budget.CollegiateLinkOrganizationId);
         // the only reason to have duplicated code is this inconsistency in API
