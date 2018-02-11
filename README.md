@@ -1,87 +1,114 @@
-// This script will download a snapshot of JFC budgets accessible from your account
-// Note that it will not download budgets you don't have access to
-$.getScript("//cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.min.js",
 
-function () { // we don't want to interfere with the campuslab code, so anonymous function
-    // INIT
-    // campuslabs comes with jquery 1.9.1
-    // if ($("#snapshot-form")) {
-    //     return $("#snapshot-form").submit();
-    // }
+# Unofficial tool to dump JFC data
 
-    $(document.body).append(
-        '<div id="snapshot-dialog" title="Data is being collected" style="display:none">' +
-        '<form method="POST" id="snapshot-form" target="_blank"' +
-        '   action="//moodle.university.innopolis.ru/schooligan/download.php">' +
-        '<input type="hidden" value="" name="data" id="snapshot-data" />' +
-        '</form>' +
-        '<div class=snapshot-progreessbar"></div></div>');
+## How to use
 
-    function get_cookie(key) {
-        var result;
-        return (result = new RegExp(
-                '(?:^|; )'+encodeURIComponent(key)+'="?([^;"]*)').exec(
-                    document.cookie)
-            ) ? (result[1]) : null;
-    }
-    function imap(arr, key, value) {
-        var result = new Map(); // ES6 feature; requires at least IE11 or SF10
-        arr.forEach(function(item){ result[item[key]] = value? item[value]: item; });
-        return result;
-    }
-    function _api(url, type, data) {
-        data = JSON.stringify(data);
-        var result = null;
-        $.ajax({
-            method: type,
-            url: url,
-            dataType: 'json',
-            success: function(data) {result = data},
-            data: data,
-            async: false,
-            headers: {
-                'X-XSRF-TOKEN': get_cookie('XSRF-TOKEN'),
-                'Content-Type':'application/json;charset=utf-8'
-            }
-        });
-        return result;
-    }
-    function get_org_name(org_id) {
-        // { Id: <int>, Name: <str>, Status: <str>}
-        return _api('/CollegiateLinkAccountInfo/Organizations/' + org_id, 'GET');
-    }
-    function get_org_names(org_ids) {
-        // returns list of obj, same format as a single org name
-        return _api('/CollegiateLinkAccountInfo/Organizations/getList', 'POST', org_ids);
-    }
-    function get_budgets() {
-        /* This API call returns a list of objects:
+- Bookmark [this link](javascript://$.getScript('');)
+- Open [budget tracker](https://cmu.campuslabs.com/budgeting/)
+- Click the bookmark. 
+After couple minutes, you will be prompted to save a file.
+
+The file can be processed later by tools from this repository
+
+
+# API documentation
+
+## List of sumitted budgets
+GET: `budgetingapi/submissions/submissions`
+
+Result example:
+
+    [
+        { "Id": <int>,
+          "Name": <str>,
+          "CalculatedAmount": <float>,
+          "ProcessName": <str>,  // e.g.: "FY 15 Budget",
+          "CreatedOn": <str>, // e.g.: "2014-11-10T09:12:47",
+          "Status":{
+              "StatusType": <str>, // e.g.: "Approved",
+              "CreatedOn": <str>, // e.g.: "2015-01-21T14:01:25"
+          },
+          "AccountId": <UID>,  // user id
+          "CollegiateLinkOrganizationId": <int> or null        
+        },
+        ...
+    ]
+
+## List budgets under review
+GET: `/budgetingapi/reviews/reviews`
+
+Result example:
+
+    [
         { Id: <int>,  #budget id, bo be used in get_budget()
           Name: <str>,  # budget name, not org
-          CalculatedAmount: <float>,           # the REQUESTED amount, not adjusted
+          CalculatedAmount: <float>, // the REQUESTED amount, not adjusted
           CollegiateLinkOrganizationId: <int>,
-          Account: { Id: <UID> },
-          Process: { Id: <int>, Name: <str>}   # e.g. 1396, "FY18 JFC Budget Request", same for all budgets in the year
-          Status: { StatusType: <str>, CreatedOn: <ISOdate>},  # e.g. "Submitted", "2016-12-31T10:00:01"
-          Step: { Name: <str stepname>}  # e.g. "JFC Rep Recommendation"
-        }
-         */
-        return _api('/budgetingapi/reviews/reviews', 'GET');
+          Account: { 
+              Id: <UID> 
+          },
+          Process: { 
+              Id: <int>, // e.g. 1396 
+              Name: <str>  // e.g. "FY18 JFC Budget Request", same for all budgets in the year
+          },
+          Status: { 
+            StatusType: <str>, // e.g.: "Submitted" 
+            CreatedOn: <ISOdate>  // e.g.: "2016-12-31T10:00:01"
+          },
+          Step: { 
+              Name: <str stepname> // e.g. "JFC Rep Recommendation"
+          }
+        },
+        ...
+    ]
+
+
+## Get org name
+GET: `/CollegiateLinkAccountInfo/Organizations/ + org_id`
+
+Result example:
+
+     { Id: <int>, 
+       Name: <str>, 
+       Status: <str>
+     }
+
+## Get org names
+POST: `/CollegiateLinkAccountInfo/Organizations/getList`
+
+payload: JSON list of org ids
+
+Result example:
+
+    [
+        { Id: <int>, 
+           Name: <str>, 
+           Status: <str>
+         },
+         ...
+    ]
+
+
+## Get user info
+POST: `/budgetingapi/submissions/submissions/GetAccountDetails` 
+
+payload: user UID
+
+Result example:
+
+    { FirstName: <str>,
+      LastName: <str>
+      Id: <uid>,
+      ExternalId: <email>,
+      ProfileImageUrl: <str>
     }
-    function get_profile(uid){
-        /*
-        { FirstName: <str>,
-          LastName: <str>
-          Id: <uid>,
-          ExternalId: <email>,
-          ProfileImageUrl: <str>
-        }
-         */
-        return _api('/budgetingapi/submissions/submissions/GetAccountDetails', 'POST', uid);
-    }
-    function get_budget(budget_id) {
-        /* This API call returns an object:
-         { Id: <int>,
+
+## Get budget info
+GET: `/budgetingapi/reviews/reviews/ + budget_id`
+
+Result example:
+
+       { Id: <int>,
          Name: <str>,  # org name
          Description: str,  # one paragraph description, user input
          CollegiateLinkOrganizationId: int, # can be null, perhaps an error in campuslabs
@@ -185,33 +212,3 @@ function () { // we don't want to interfere with the campuslab code, so anonymou
             },
             ...]
          }
-         */
-        return _api('/budgetingapi/reviews/reviews/' + budget_id, 'GET');
-    }
-
-    var columns = ['Request id', 'Request Name', 'Org Id', 'Org name',
-        'Process name', 'Status', 'Created on', 'Step name',
-        'Amount requested', 'Amount adjusted'];
-    var budget_requests = get_budgets();
-    var org_ids = $.map(budget_requests, function(br){return br.CollegiateLinkOrganizationId});
-    var org_names = imap(get_org_names(org_ids), 'Id', 'Name');
-    var data = $.map(budget_requests, function(br){
-        var org_id=br.CollegiateLinkOrganizationId,
-            b = get_budget(br.Id);
-        return [[br.Id, br.Name, org_id, org_names[org_id],
-            br.Process.Name, br.Status.StatusType, br.Status.CreatedOn, br.Step.Name,
-            b.Amount, b.AdjustmentAmount]]
-    });
-
-    var csv_data = Papa.unparse({
-        fields: columns,
-        data: data
-    });
-
-    // Finally, download the file:
-    $("#snapshot-data").val(csv_data);
-    $("#snapshot-form").submit();
-
-
-
-});
